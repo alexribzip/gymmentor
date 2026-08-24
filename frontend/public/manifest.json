@@ -1,7 +1,7 @@
 {
-  "name": "openGym",
-  "short_name": "openGym",
-  "description": "Personal gym & body weight tracker",
+  "name": "openGym Coach",
+  "short_name": "Coach",
+  "description": "Ton tracker de muscu avec un vrai coach dans l'app",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
