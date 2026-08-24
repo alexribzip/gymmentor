@@ -10,19 +10,22 @@ self.addEventListener('activate', e => {
 })
 self.addEventListener('push', e => {
   const data = e.data ? e.data.json() : {}
-  e.waitUntil(self.registration.showNotification(data.title || 'openGym', {
+  e.waitUntil(self.registration.showNotification(data.title || 'openGym Coach', {
     body: data.body || '',
     icon: 'icon-512.png',
     badge: 'icon-180.png',
     tag: data.tag || 'opengym',
-    renotify: true
+    renotify: true,
+    data: { url: data.url || null }
   }))
 })
 self.addEventListener('notificationclick', e => {
   e.notification.close()
+  const url = e.notification.data?.url
   e.waitUntil(self.clients.matchAll({ type: 'window' }).then(clients => {
     const c = clients.find(c => 'focus' in c)
-    return c ? c.focus() : self.clients.openWindow('./')
+    if (c) { if (url && c.navigate) c.navigate('./' + url); return c.focus() }
+    return self.clients.openWindow('./' + (url || ''))
   }))
 })
 
