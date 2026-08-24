@@ -49,4 +49,18 @@ describe('Chat view states', () => {
     expect(host.querySelector('textarea')).toBeTruthy()
     expect(mocks.api).toHaveBeenCalled()
   })
+  it('coached → auto read-marks messages and shows Seen', async () => {
+    mocks.user = { id: 'u1', name: 'Marc', coached: true }; mocks.isGuest = false
+    mocks.api.mockImplementation(path => path.startsWith('/api/chat?')
+      ? Promise.resolve({ messages: [{ id: 1, from: 'client', text: 'yo', ts: 1 }, { id: 2, from: 'coach', text: 'salut', ts: 2 }], lastReadCoach: 1 })
+      : Promise.resolve({ ok: true }))
+    render()
+    await act(async () => { await Promise.resolve(); await Promise.resolve() })
+    expect(host.textContent).toContain('yo')
+    expect(host.textContent).toContain('salut')
+    const readCall = mocks.api.mock.calls.find(c => c[0] === '/api/chat/read')
+    expect(readCall).toBeTruthy()
+    expect(readCall[1].body).toContain('"upTo":2')
+    expect(host.textContent).toContain('Seen')
+  })
 })
