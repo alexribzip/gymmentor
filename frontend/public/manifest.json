@@ -1,7 +1,7 @@
 {
-  "name": "openGym Coach",
-  "short_name": "Coach",
-  "description": "Ton tracker de muscu avec un vrai coach dans l'app",
+  "name": "GymMentor",
+  "short_name": "GymMentor",
+  "description": "Ton tracker de muscu avec un vrai mentor dans l'app",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
