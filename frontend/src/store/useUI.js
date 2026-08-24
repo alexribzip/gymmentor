@@ -56,6 +56,7 @@ let workDone = null
 export const useUI = create((set, get) => ({
   sheets: [],          // { id, render:(close)=>JSX, kind:'sheet'|'center', locked }
   toastMsg: '',
+  chatUnread: 0,       // badge on the Coach tab — server-truth, set by the shell poll
   timer: null,         // rest countdown between sets — { left, total, endsAt }
   work: null,          // work countdown DURING a timed set (issue #16) — { left, total, endsAt, label }
 
@@ -73,6 +74,7 @@ export const useUI = create((set, get) => ({
     clearTimeout(toastTm)
     toastTm = setTimeout(() => set({ toastMsg: '' }), 2200)
   },
+  setChatUnread(n) { set({ chatUnread: n }) },
 
   startRest(sec) {
     get().stopRest()

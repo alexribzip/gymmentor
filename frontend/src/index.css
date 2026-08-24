@@ -286,6 +286,13 @@ h4.sec{
   color:var(--label-3);font-size:10px;font-weight:500;letter-spacing:.005em;padding-top:3px;
   transition:color var(--fast);
 }
+#tabbar button{position:relative}
+#tabbar .tabdot{
+  position:absolute;top:1px;left:calc(50% + 6px);width:8px;height:8px;
+  border-radius:50%;background:var(--red);
+}
+/* 6 tabs: slightly tighter labels so nothing wraps on narrow phones */
+#tabbar button{font-size:9.5px;letter-spacing:0}
 /* The inactive tint is semi-transparent, so wherever two strokes cross inside an
    icon (the calendar's hangers over its frame, the divider's caps on its sides)
    the alpha doubled up and the icon read as a stack of loose layers. Carrying the

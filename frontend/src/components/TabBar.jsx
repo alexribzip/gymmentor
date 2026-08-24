@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useStore } from '../store/useStore.js'
+import { useUI } from '../store/useUI.js'
 import { effectiveRoutine } from '../lib/history.js'
 import { todayISO } from '../lib/format.js'
 import { t } from '../lib/i18n.js'
@@ -11,6 +12,7 @@ export default function TabBar({ onStart }) {
   const S = useStore(s => s.S)
   const user = useStore(s => s.user)
   const isGuest = useStore(s => s.isGuest())
+  const chatUnread = useUI(s => s.chatUnread)
   if (!user && !isGuest) return null
   const cur = loc.pathname.split('/')[1] || 'home'
   const on = k => cur === k || (cur === 'history' && k === 'stats') || (cur === 'settings' && k === 'home')
@@ -22,8 +24,9 @@ export default function TabBar({ onStart }) {
     }
     nav('/workout')
   }
-  const Tab = ({ k, icon, to, label }) => (
+  const Tab = ({ k, icon, to, label, badge }) => (
     <button className={on(k) ? 'on' : ''} onClick={() => nav(to)}>
+      {badge > 0 && <span className="tabdot" />}
       <Icon name={icon} /><span>{label}</span>
     </button>
   )
@@ -38,6 +41,7 @@ export default function TabBar({ onStart }) {
       </button>
       <Tab k="stats" icon="chart" to="/stats" label={t('Stats')} />
       <Tab k="library" icon="list" to="/library" label={t('Exercises')} />
+      <Tab k="chat" icon="chat" to="/chat" label={t('Coach')} badge={chatUnread} />
     </nav>
   )
 }

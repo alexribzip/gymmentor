@@ -3,6 +3,7 @@ import { HashRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'r
 import { useStore } from './store/useStore.js'
 import { useUI } from './store/useUI.js'
 import { bindUI } from './components/ui.jsx'
+import { api } from './lib/api.js'
 import { ACCENTS } from './lib/format.js'
 import { setLang, useLang } from './lib/i18n.js'
 import { setNav } from './lib/nav.js'
@@ -51,6 +52,17 @@ function Shell() {
   useEffect(() => { window.scrollTo(0, 0) }, [loc.pathname])
   // bound to the workout, not to the route — checking Stats mid-session keeps the screen on
   useWakeLock(!!S.active && S.keepAwake !== false)
+
+  // Chat badge — light unread poll; push is the instant signal, this keeps the dot honest.
+  const setChatUnread = useUI(s => s.setChatUnread)
+  useEffect(() => {
+    if (!user?.coached) return
+    const load = () => { if (!document.hidden) api('/api/chat/unread').then(r => setChatUnread(r.n)).catch(() => {}) }
+    load()
+    const iv = setInterval(load, 60000)
+    document.addEventListener('visibilitychange', load)
+    return () => { clearInterval(iv); document.removeEventListener('visibilitychange', load) }
+  }, [user?.coached])
 
   const authed = user || isGuest
   if (!ready && !authed) return (
