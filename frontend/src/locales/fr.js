@@ -579,5 +579,18 @@ export default {
   'secondary': 'secondaire',
   "No exercises with an estimated 1RM yet.": "Aucun exercice avec un 1RM estimé pour l'instant.",
   'Tap a muscle to see its exercises.': 'Touchez un muscle pour voir ses exercices.',
-  'Unpair': 'Dissocier'
+  'Unpair': 'Dissocier',
+  'Coach': 'Coach',
+  'Chat needs an account': 'Le chat nécessite un compte',
+  'Create your profile to talk to your coach — your workouts sync too.': 'Crée ton profil pour parler à ton coach — tes séances seront aussi synchronisées.',
+  'Create profile': 'Créer mon profil',
+  'Your personal coach': 'Ton coach personnel',
+  'A real coach who follows your training': 'Un vrai coach qui suit ton entraînement',
+  'He sees your workouts and adjusts your plan': 'Il voit tes séances et ajuste ton programme',
+  'Unlimited messages, answers within the day': 'Messages illimités, réponse dans la journée',
+  'Get coaching': 'Démarrer le coaching',
+  'Say hi — your coach reads everything.': 'Dis bonjour — ton coach lit tout.',
+  'Write a message…': 'Écris ton message…',
+  'Send': 'Envoyer',
+  'Seen': 'Vu'
 }
