@@ -9,6 +9,7 @@ import {
   generateAuthenticationOptions, verifyAuthenticationResponse
 } from '@simplewebauthn/server';
 import webpush from 'web-push';
+import { registerChatRoutes } from './chat.js';
 
 const PORT = +(process.env.PORT || 3000);
 const DATA = process.env.DATA_DIR || '/data';
@@ -46,6 +47,7 @@ try { db = JSON.parse(fs.readFileSync(dbFile, 'utf8')); } catch {}
 db.subs = db.subs || [];
 db.invites = db.invites || [];
 const isAdmin = user => !!user && (user.admin === true || ADMIN_UIDS.includes(user.id));
+const publicUser = u => ({ id: u.id, name: u.name, admin: isAdmin(u), coached: !!u.coached });
 function saveDb() { atomicWrite(dbFile, JSON.stringify(db, null, 2)); }
 function atomicWrite(file, content) {
   const tmp = file + '.tmp';
@@ -359,7 +361,7 @@ const routes = {
   'GET /api/me': async (req, res) => {
     const user = readSession(req);
     if (!user) return json(res, 401, { error: 'not signed in' });
-    json(res, 200, { user: { id: user.id, name: user.name, admin: isAdmin(user) } });
+    json(res, 200, { user: publicUser(user) });
   },
 
   'POST /api/register/options': async (req, res) => {
@@ -434,7 +436,7 @@ const routes = {
     });
     saveDb();
     audit(req, 'auth.register.ok', { user, msg: invite ? invite.code : null });
-    json(res, 200, { user: { id: user.id, name: user.name, admin: isAdmin(user) } }, { 'Set-Cookie': sessionCookie(user) });
+    json(res, 200, { user: publicUser(user) }, { 'Set-Cookie': sessionCookie(user) });
   },
 
   'POST /api/login/options': async (req, res) => {
@@ -495,7 +497,7 @@ const routes = {
       return json(res, 403, { error: 'this account has been disabled' });
     }
     audit(req, 'auth.login.ok', { user });
-    json(res, 200, { user: { id: user.id, name: user.name, admin: isAdmin(user) } }, { 'Set-Cookie': sessionCookie(user) });
+    json(res, 200, { user: publicUser(user) }, { 'Set-Cookie': sessionCookie(user) });
   },
 
   // Reads the session purely so the sign-out can be recorded; the cookie is cleared either way.
@@ -726,6 +728,11 @@ const routes = {
     json(res, 200, { ok: true });
   }
 };
+
+registerChatRoutes(routes, {
+  DATA, db, saveDb, json, readBody, readSession, requireAdmin, isAdmin,
+  sendPush, audit, readState, livePresence, RP_NAME
+});
 
 http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
