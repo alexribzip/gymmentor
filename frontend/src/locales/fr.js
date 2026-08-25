@@ -615,5 +615,11 @@ export default {
   'Bodyweight only': 'Poids du corps',
   'Your program': 'Ton programme',
   'Your coach will review it — you can adjust everything later in Plan.': 'Ton coach va le relire — tout reste modifiable dans Plan.',
-  "Let's go 💪": "C'est parti 💪"
+  "Let's go 💪": "C'est parti 💪",
+
+  // --- post-onboarding spotlight tour ---
+  '📅 Your week plan lives here': '📅 Ton programme est posé sur ta semaine',
+  '▶️ Start your workout here on training days': '▶️ Le jour J, ta séance se lance ici',
+  '💬 Your coach already wrote to you': "💬 Ton coach t'a déjà écrit",
+  'Create my first program': 'Créer mon premier programme'
 }

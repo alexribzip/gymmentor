@@ -966,3 +966,16 @@ h4.sec{
   display:flex;align-items:center;justify-content:center;flex:none;font-size:18px;
 }
 .chatinput .sendbtn:disabled{opacity:.4}
+
+/* ------------------------------------------------------------ spotlight -- */
+.spotlight-overlay{position:fixed;inset:0;z-index:200;background:transparent}
+.spotlight-hole{
+  position:absolute;border-radius:14px;
+  box-shadow:0 0 0 9999px rgba(0,0,0,.6);background:transparent;
+  outline:2px solid var(--acc);
+}
+.spotlight-caption{
+  position:absolute;left:16px;right:16px;background:var(--bg-el);
+  border-radius:14px;padding:14px 16px;text-align:center;
+}
+.spotlight-caption p{margin:0 0 10px;font-size:.95rem}

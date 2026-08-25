@@ -9,6 +9,7 @@ import LineChart from '../components/LineChart.jsx'
 import Icon from '../components/Icon.jsx'
 import { Button } from '../components/ui.jsx'
 import { glyphOf } from '../lib/glyphs.js'
+import Spotlight from '../components/Spotlight.jsx'
 
 // Home = what to do now + a quick glance. Deep charts & history live in Stats.
 export default function Home() {
@@ -51,7 +52,7 @@ export default function Home() {
       <button className="iconbtn" onClick={() => nav('/settings')} aria-label={t('Settings')}><Icon name="gear" /></button>
     </div>
 
-    <div className="card">
+    <div className="card" id="spot-week">
       <div className="row between" style={{ marginBottom: 8 }}>
         <button className="iconbtn" style={{ width: 30, height: 30, fontSize: 15 }} onClick={() => setWeekOffset(w => w - 1)} aria-label="Previous week"><Icon name="chevronLeft" /></button>
         <div className="small muted" style={{ fontWeight: 500 }}>{wkLabel}</div>
@@ -128,5 +129,7 @@ export default function Home() {
         <Icon name="calendar" className="chev" style={{ fontSize: 20 }} />
       </div>
     </div>
+
+    <Spotlight />
   </div>
 }

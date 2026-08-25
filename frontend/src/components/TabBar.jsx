@@ -24,8 +24,8 @@ export default function TabBar({ onStart }) {
     }
     nav('/workout')
   }
-  const Tab = ({ k, icon, to, label, badge }) => (
-    <button className={on(k) ? 'on' : ''} onClick={() => nav(to)}>
+  const Tab = ({ k, icon, to, label, badge, idAttr }) => (
+    <button id={idAttr} className={on(k) ? 'on' : ''} onClick={() => nav(to)}>
       {badge > 0 && <span className="tabdot" />}
       <Icon name={icon} /><span>{label}</span>
     </button>
@@ -41,7 +41,7 @@ export default function TabBar({ onStart }) {
       </button>
       <Tab k="stats" icon="chart" to="/stats" label={t('Stats')} />
       <Tab k="library" icon="list" to="/library" label={t('Exercises')} />
-      <Tab k="chat" icon="chat" to="/chat" label={t('Coach')} badge={chatUnread} />
+      <Tab k="chat" icon="chat" to="/chat" label={t('Coach')} badge={chatUnread} idAttr="spot-coach-tab" />
     </nav>
   )
 }

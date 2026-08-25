@@ -23,7 +23,6 @@ const CHOICES = {
 export default function Onboarding() {
   const update = useStore(s => s.update)
   const setSpotlight = useUI(s => s.setSpotlight)
-  const toast = useUI(s => s.toast)
   const [step, setStep] = useState(0)
   const [answers, setAnswers] = useState({})
 
