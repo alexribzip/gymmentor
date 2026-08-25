@@ -61,6 +61,13 @@
 - [ ] Coach répond depuis /coach → notif push côté client, clic → ouvre #/chat.
 - [ ] « Vu » s'affiche sous le dernier message de chacun après lecture en face.
 - [ ] Désactiver le coaching du compte test → son onglet réaffiche l'upsell.
+- [ ] Nouveau compte → wizard onboarding : 4 réponses → programme visible dans Plan,
+      posé sur la semaine, spotlights, message du coach dans l'onglet Coach (+ push
+      admin « 🆕 … a fini l'onboarding »).
+- [ ] Le nouveau compte répond 5 fois → 6ᵉ message bloqué, bandeau découverte
+      remplacé par l'upsell, le fil reste lisible.
+- [ ] « Plus tard » depuis le wizard → app accessible ; Réglages → « Créer mon
+      premier programme » relance le wizard.
 
 ## Rappels
 - Backup = copier ./data (db.json, state-*.json, chat-*.json, secret, vapid.json).
