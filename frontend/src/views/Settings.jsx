@@ -86,6 +86,7 @@ export default function Settings() {
           onClick={() => window.open(REPO, '_blank', 'noopener')} />
       </> : user ? <>
         <Row icon="personCircle" iconTint="var(--grey)" title={user.name} subtitle={t('Signed in with passkey — data syncs to this profile.')} />
+        {user.billing && <Row icon="key" iconTint="var(--indigo)" title={t('Manage my subscription')} accessory="chevron" onClick={() => { location.href = '/api/billing/portal' }} />}
         {!S.routines.length && <Row icon="sparkles" iconTint="var(--acc)" title={t('Create my first program')} accessory="chevron" onClick={() => nav('/onboarding')} />}
         {user.admin && <Row icon="wrench" iconTint="var(--indigo)" title={t('Admin dashboard')} accessory="chevron" onClick={() => nav('/admin')} />}
         {user.admin && <Row icon="chat" iconTint="var(--acc)" title="Coach" accessory="chevron" onClick={() => nav('/coach')} />}

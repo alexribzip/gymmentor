@@ -6,17 +6,22 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 const mocks = vi.hoisted(() => ({
   user: null,
   isGuest: false,
+  config: {},
+  search: '',
   api: vi.fn(() => Promise.resolve({ messages: [], lastReadCoach: 0 })) // coached-shaped default; non-coached tests set discovery explicitly
 }))
 
-vi.mock('../store/useStore.js', () => ({
-  useStore: selector => selector({ user: mocks.user, isGuest: () => mocks.isGuest })
-}))
+vi.mock('../store/useStore.js', () => {
+  const useStore = selector => selector({ user: mocks.user, isGuest: () => mocks.isGuest, config: mocks.config })
+  useStore.getState = () => ({ setUser: () => {} })
+  return { useStore }
+})
 vi.mock('../store/useUI.js', () => ({
   useUI: selector => selector({ toast: () => {}, setChatUnread: () => {} })
 }))
 vi.mock('../lib/api.js', () => ({ api: (...a) => mocks.api(...a) }))
 vi.mock('../lib/nav.js', () => ({ nav: () => {} }))
+vi.mock('react-router-dom', () => ({ useLocation: () => ({ search: mocks.search }) }))
 
 import Chat from './Chat.jsx'
 
@@ -27,6 +32,8 @@ beforeEach(() => {
   globalThis.window = dom.window
   host = dom.document.createElement('div')
   dom.document.body.appendChild(host)
+  mocks.config = {}
+  mocks.search = ''
 })
 afterEach(() => { act(() => root?.unmount()); vi.clearAllMocks() })
 
@@ -75,6 +82,24 @@ describe('Chat view states', () => {
     expect(host.textContent).toContain('bienvenue')
     expect(host.textContent).toContain('3')          // 5-2 messages restants
     expect(host.querySelector('textarea')).toBeTruthy()
+  })
+  it('signed-in non-coached, config.billing:true → UpsellCard shows checkout link with price', async () => {
+    mocks.user = { id: 'u1', name: 'Marc', coached: false }; mocks.isGuest = false; mocks.config = { billing: true }
+    mocks.api.mockImplementation(() => Promise.resolve({ messages: [], lastReadCoach: 0, discovery: { used: 0, max: 5 } }))
+    render()
+    await act(async () => { await Promise.resolve() })
+    const a = host.querySelector('a[href="/api/billing/checkout"]')
+    expect(a).toBeTruthy()
+    expect(a.textContent).toContain('14,90')
+  })
+  it('signed-in non-coached, config.billing:false → UpsellCard keeps mailto contact', async () => {
+    mocks.user = { id: 'u1', name: 'Marc', coached: false }; mocks.isGuest = false; mocks.config = { billing: false }
+    mocks.api.mockImplementation(() => Promise.resolve({ messages: [], lastReadCoach: 0, discovery: { used: 0, max: 5 } }))
+    render()
+    await act(async () => { await Promise.resolve() })
+    const a = host.querySelector('a[href^="mailto:"]')
+    expect(a).toBeTruthy()
+    expect(host.querySelector('a[href="/api/billing/checkout"]')).toBeFalsy()
   })
   it('non-coached with exhausted quota → readable thread, upsell instead of input', async () => {
     mocks.user = { id: 'u1', name: 'Marc', coached: false }; mocks.isGuest = false

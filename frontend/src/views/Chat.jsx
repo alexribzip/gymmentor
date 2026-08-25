@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useStore } from '../store/useStore.js'
 import { useUI } from '../store/useUI.js'
 import { api } from '../lib/api.js'
@@ -28,6 +29,7 @@ function AccountGate() {
 // The sales pitch body — reused full-screen (no messages yet) and inline once a
 // non-coached user's discovery quota runs out (replaces the message input).
 function UpsellCard() {
+  const config = useStore(s => s.config)
   return <div className="card" style={{ padding: '24px 18px' }}>
     <h3 style={{ marginTop: 0 }}>{t('Your personal coach')}</h3>
     <ul className="small" style={{ paddingLeft: 18, margin: '10px 0 16px', display: 'grid', gap: 8 }}>
@@ -35,7 +37,10 @@ function UpsellCard() {
       <li>{t('He sees your workouts and adjusts your plan')}</li>
       <li>{t('Unlimited messages, answers within the day')}</li>
     </ul>
-    <a className="btn primary" style={{ display: 'block', textAlign: 'center' }} href={CONTACT_URL}>{t('Get coaching')}</a>
+    {config?.billing ? <>
+      <a className="btn primary" style={{ display: 'block', textAlign: 'center' }} href="/api/billing/checkout">{t('Subscribe · 14,90 €/month')}</a>
+      <div className="dim small" style={{ textAlign: 'center', marginTop: 8 }}>{t('No commitment, cancel anytime in one tap.')}</div>
+    </> : <a className="btn primary" style={{ display: 'block', textAlign: 'center' }} href={CONTACT_URL}>{t('Get coaching')}</a>}
   </div>
 }
 
@@ -120,9 +125,42 @@ function Conversation({ coached }) {
   </div>
 }
 
+const CHECKOUT_POLL_MS = 2000
+const CHECKOUT_POLL_TRIES = 5
+
 export default function Chat() {
   const user = useStore(s => s.user)
   const isGuest = useStore(s => s.isGuest())
+  const toast = useUI(s => s.toast)
+  const loc = useLocation()
+  const handledSearch = useRef(null)
+
+  // Stripe redirects back to /#/chat?sub=ok|err. `coached` flips server-side once the webhook
+  // lands, which can trail the redirect by a couple seconds — so on sub=ok we poll /api/me for
+  // it instead of trusting the redirect alone, then clean the query either way.
+  useEffect(() => {
+    if (!loc.search || handledSearch.current === loc.search) return
+    handledSearch.current = loc.search
+    const sub = new URLSearchParams(loc.search).get('sub')
+    if (sub === 'err') { toast(t('Payment failed or cancelled.')); nav('/chat'); return }
+    if (sub !== 'ok') return
+    toast(t('Payment confirmed, your coaching is activating…'))
+    let stopped = false
+    let timer = null
+    let attempts = 0
+    const tick = () => {
+      attempts++
+      api('/api/me').then(me => {
+        if (stopped) return
+        if (me?.user?.coached) { useStore.getState().setUser(me.user); return }
+        if (attempts < CHECKOUT_POLL_TRIES) timer = setTimeout(tick, CHECKOUT_POLL_MS)
+      }).catch(() => { if (!stopped && attempts < CHECKOUT_POLL_TRIES) timer = setTimeout(tick, CHECKOUT_POLL_MS) })
+    }
+    tick()
+    nav('/chat')
+    return () => { stopped = true; if (timer) clearTimeout(timer) }
+  }, [loc.search])
+
   if (!user && isGuest) return <AccountGate />
   return <Conversation coached={!!user?.coached} />
 }
