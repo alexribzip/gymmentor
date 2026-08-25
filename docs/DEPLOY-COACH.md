@@ -55,7 +55,7 @@
 
 ## Smoke test E2E (à chaque déploiement)
 - [ ] `curl -s https://gymmentor.app/api/health` → `{"ok":true,...}`
-- [ ] Créer un 2ᵉ compte test (autre navigateur/profil) → wizard onboarding : 4 réponses →
+- [ ] Créer un 2ᵉ compte test (autre navigateur/profil) → wizard onboarding : 5 réponses (dont le focus) →
       programme visible dans Plan, posé sur la semaine, spotlights, message du coach dans
       l'onglet Coach (+ push admin « 🆕 … a fini l'onboarding »).
 - [ ] Le nouveau compte répond 5 fois → 6ᵉ message bloqué, bandeau découverte
