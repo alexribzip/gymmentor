@@ -27,8 +27,9 @@ export function welcomeText(name, a) {
   return base;
 }
 
-const valid = a => a && OBJECTIFS[a.objectif] && NIVEAUX.includes(a.niveau)
-  && JOURS.includes(+a.jours) && MATERIELS[a.materiel] && (a.focus === undefined || a.focus in FOCUS);
+const valid = a => a && Object.hasOwn(OBJECTIFS, a.objectif) && NIVEAUX.includes(a.niveau)
+  && JOURS.includes(+a.jours) && Object.hasOwn(MATERIELS, a.materiel)
+  && (a.focus === undefined || Object.hasOwn(FOCUS, a.focus));
 
 export function registerOnboardingRoutes(routes, deps) {
   const { DATA, db, saveDb, json, readSession, sendPush, isAdmin } = deps;
