@@ -6,6 +6,7 @@ import { t } from '../lib/i18n.js'
 import { nav } from '../lib/nav.js'
 import { buildProgram } from '../lib/programs.js'
 import { exOr } from '../lib/exercises.js'
+import { confirmSheet } from '../sheets.jsx'
 import Icon from '../components/Icon.jsx'
 import { Button } from '../components/ui.jsx'
 
@@ -23,6 +24,7 @@ const CHOICES = {
 
 export default function Onboarding() {
   const update = useStore(s => s.update)
+  const hasProgram = useStore(s => (s.S.routines || []).length > 0)
   const setSpotlight = useUI(s => s.setSpotlight)
   const [step, setStep] = useState(0)
   const [answers, setAnswers] = useState({})
@@ -30,7 +32,7 @@ export default function Onboarding() {
   const later = () => { update(S => { S.onboarded = true }); nav('/home') }
   const pick = (key, value) => { setAnswers(a => ({ ...a, [key]: value })); setStep(s => s + 1) }
 
-  const finish = () => {
+  const apply = () => {
     const program = buildProgram(answers)
     update(S => {
       S.routines = program.routines
@@ -41,6 +43,18 @@ export default function Onboarding() {
       .catch(() => update(S => { S._onboardingPending = answers }))
     setSpotlight?.(true)
     nav('/home')
+  }
+
+  // Re-running the wizard over an existing program (the "Nouveau plan" button
+  // in Plan) replaces the routines — never the workout history. Ask first.
+  const finish = () => {
+    if (!hasProgram) return apply()
+    confirmSheet({
+      title: t('Replace your current program?'),
+      message: t('Your current routines will be replaced by the new program. Your workout history is kept.'),
+      confirmText: t('Replace'),
+      onConfirm: apply
+    })
   }
 
   const name = STEPS[step]
