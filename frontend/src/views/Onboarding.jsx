@@ -55,7 +55,7 @@ export default function Onboarding() {
     {name === 'welcome' && <div className="card" style={{ textAlign: 'center', padding: '32px 18px' }}>
       <div style={{ fontSize: 40 }}>👋</div>
       <h2>{t("Let's build your first program")}</h2>
-      <p className="muted small">{t('4 quick questions, about a minute.')}</p>
+      <p className="muted small">{t('5 quick questions, about a minute.')}</p>
       <Button variant="primary" onClick={() => setStep(1)}>{t('Create my program')}</Button>
     </div>}
 

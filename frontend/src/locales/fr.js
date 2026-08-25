@@ -598,7 +598,7 @@ export default {
   'Seen': 'Vu',
   'Later': 'Plus tard',
   "Let's build your first program": 'On va créer ton premier programme',
-  '4 quick questions, about a minute.': '4 questions rapides, une minute chrono.',
+  '5 quick questions, about a minute.': '5 questions rapides, une minute chrono.',
   'Create my program': 'Créer mon programme',
   "What's your goal?": 'Ton objectif ?',
   'Build muscle': 'Prendre du muscle',
