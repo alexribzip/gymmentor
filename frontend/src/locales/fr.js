@@ -228,6 +228,7 @@ export default {
   'Your name': 'Ton nom',
   'Create passkey': 'Créer une passkey',
   'Your workouts. Your weights. Your profile.': 'Tes séances. Tes charges. Ton profil.',
+  'Continue with Google': 'Continuer avec Google',
   'Sign in with passkey': 'Se connecter avec une passkey',
   'Create new profile': 'Créer un nouveau profil',
   "This browser doesn't support passkeys — you can still use openGym locally on this device.": 'Ce navigateur ne prend pas en charge les passkeys — tu peux quand même utiliser openGym localement sur cet appareil.',
@@ -365,6 +366,7 @@ export default {
   'Expand': 'Agrandir',
   'Invite code': 'Code d’invitation',
   'This app is invite-only — enter the code you were given.': 'Cette appli est sur invitation — saisissez le code qu’on vous a donné.',
+  'This app is invite-only — ask for an invite code.': "Cette appli est sur invitation, demande un code d'accès.",
   'An invite code is required': 'Un code d’invitation est requis',
   'Admin dashboard': 'Tableau d’administration',
   // --- muscle map ---

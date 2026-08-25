@@ -22,6 +22,7 @@ function ClientData({ id }) {
   useEffect(() => { api('/api/admin/user?id=' + encodeURIComponent(id)).then(setD).catch(() => {}) }, [id])
   if (!d) return <div className="muted small">Chargement…</div>
   return <>
+    <div className="small muted" style={{ marginBottom: 8 }}>{d.user?.email || 'Pas d\'email (compte passkey)'}</div>
     <div className="tiles" style={{ textAlign: 'left' }}>
       <div className="tile"><div className="l">Séances</div><div className="v" style={{ fontSize: '1.1rem' }}>{d.workouts.length}</div></div>
       <div className="tile"><div className="l">Pesées</div><div className="v" style={{ fontSize: '1.1rem' }}>{d.bodyweight.length}</div></div>
