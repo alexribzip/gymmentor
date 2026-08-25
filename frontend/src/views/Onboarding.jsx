@@ -9,12 +9,13 @@ import { exOr } from '../lib/exercises.js'
 import Icon from '../components/Icon.jsx'
 import { Button } from '../components/ui.jsx'
 
-// 6-step first-program wizard. Writes into S via update(); the coach welcome
+// 7-step first-program wizard. Writes into S via update(); the coach welcome
 // message is requested fire-and-forget (retried at boot via S._onboardingPending).
-const STEPS = ['welcome', 'objectif', 'niveau', 'jours', 'materiel', 'preview']
+const STEPS = ['welcome', 'objectif', 'focus', 'niveau', 'jours', 'materiel', 'preview']
 
 const CHOICES = {
   objectif: [['muscle', 'Build muscle', '💪'], ['force', 'Get stronger', '🏋️'], ['forme', 'Get back in shape', '🔥']],
+  focus: [['equilibre', 'Balanced, whole body', '⚖️'], ['bas', 'Lower body & glutes', '🍑'], ['haut', 'Upper body', '💪'], ['dos', 'Back & posture', '🧘']],
   niveau: [['debutant', "I'm new to this", '🌱'], ['inter', "I've trained before", '📈']],
   jours: [[2, '2 days / week', '🗓️'], [3, '3 days / week', '🗓️'], [4, '4 days / week', '🗓️']],
   materiel: [['salle', 'Full gym', '🏢'], ['maison', 'Dumbbells at home', '🏠'], ['pdc', 'Bodyweight only', '🤸']]
@@ -58,9 +59,9 @@ export default function Onboarding() {
       <Button variant="primary" onClick={() => setStep(1)}>{t('Create my program')}</Button>
     </div>}
 
-    {['objectif', 'niveau', 'jours', 'materiel'].includes(name) && <div className="card" style={{ padding: '22px 16px' }}>
+    {['objectif', 'focus', 'niveau', 'jours', 'materiel'].includes(name) && <div className="card" style={{ padding: '22px 16px' }}>
       <h3 style={{ marginTop: 0 }}>{{
-        objectif: t("What's your goal?"), niveau: t('Your level?'),
+        objectif: t("What's your goal?"), focus: t('Where do you want the focus?'), niveau: t('Your level?'),
         jours: t('How many days a week?'), materiel: t('What equipment do you have?')
       }[name]}</h3>
       <div className="list">

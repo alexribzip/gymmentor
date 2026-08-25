@@ -34,20 +34,24 @@ const click = txt => act(() => {
 })
 
 describe('Onboarding wizard', () => {
-  it('walks the 6 steps and writes the program', async () => {
+  it('walks the 7 steps and writes the program', async () => {
     render()
     click('Create my program')  // step 1 → 2
     click('muscle')            // objectif → « Build muscle »
+    click('Lower body')        // focus → « Lower body & glutes »
     click('new to this')       // niveau → « I'm new to this »
     click('3 days')            // jours → « 3 days / week »
     click('Full gym')          // materiel → « Full gym »
-    // step 6: preview — the program is visible then confirmed
+    // step 7: preview — the program is visible then confirmed
     click("Let's go")          // « Let's go 💪 »
     await act(async () => { await Promise.resolve() })
     expect(mocks.S.routines.length).toBeGreaterThan(0)
     expect(Object.keys(mocks.S.week).length).toBe(3)
     expect(mocks.S.onboarded).toBe(true)
-    expect(mocks.api).toHaveBeenCalledWith('/api/onboarding/complete', expect.objectContaining({ method: 'POST' }))
+    const call = mocks.api.mock.calls.find(c => c[0] === '/api/onboarding/complete')
+    expect(call).toBeDefined()
+    const body = JSON.parse(call[1].body)
+    expect(body.answers.focus).toBe('bas')
     expect(mocks.nav).toHaveBeenCalledWith('/home')
   })
   it('Later marks onboarded without writing a program', () => {
