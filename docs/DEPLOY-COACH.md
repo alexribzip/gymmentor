@@ -70,7 +70,12 @@
 - [ ] Désactiver le coaching du compte test → son onglet réaffiche l'upsell.
 
 ## Rappels
-- Backup = copier ./data (db.json, state-*.json, chat-*.json, secret, vapid.json).
+- **Backup automatique en place (25/08)** : cron quotidien 03h20 UTC sur la VM
+  (`~/backup.sh`) → tar de ./data vers `gs://gymmentor-backup` (lifecycle 30 j)
+  + rotation locale 14 j dans `~/backups/`. Journal : `~/backup.log`.
+  Restauration : `gcloud storage cp gs://gymmentor-backup/data-<date>.tar.gz .`
+  puis `docker compose down`, extraire dans ~/opengym/, `docker compose up -d`.
+  Le scope storage-rw de la VM a été ajouté le 25/08 (arrêt/redémarrage fait).
 - ⚠️ Médias exercices © Gym Visual : licence à acheter pour l'usage commercial,
   ou désactiver les médias, AVANT le lancement payant (cf. NOTICE.md).
 - AGPL : le fork (chat compris) doit rester publié sur un dépôt public.
