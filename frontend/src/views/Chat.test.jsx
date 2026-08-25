@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 const mocks = vi.hoisted(() => ({
   user: null,
   isGuest: false,
-  api: vi.fn(() => Promise.resolve({ messages: [], lastReadCoach: 0, discovery: { used: 0, max: 5 } }))
+  api: vi.fn(() => Promise.resolve({ messages: [], lastReadCoach: 0 })) // coached-shaped default; non-coached tests set discovery explicitly
 }))
 
 vi.mock('../store/useStore.js', () => ({
@@ -40,6 +40,7 @@ describe('Chat view states', () => {
   })
   it('signed-in non-coached → upsell', async () => {
     mocks.user = { id: 'u1', name: 'Marc', coached: false }; mocks.isGuest = false
+    mocks.api.mockImplementation(() => Promise.resolve({ messages: [], lastReadCoach: 0, discovery: { used: 0, max: 5 } }))
     render()
     await act(async () => { await Promise.resolve() })
     expect(host.textContent).toContain('personal coach')

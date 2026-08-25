@@ -31,9 +31,9 @@ export function registerOnboardingRoutes(routes, deps) {
     const a = body.answers;
     if (!valid(a)) return json(res, 400, { error: 'invalid answers' });
     if (user.onboarded) return json(res, 200, { ok: true, already: true });
+    appendMessage(DATA, user.id, 'coach', welcomeText(user.name, { ...a, jours: +a.jours }));
     user.onboarded = new Date().toISOString();
     saveDb();
-    appendMessage(DATA, user.id, 'coach', welcomeText(user.name, { ...a, jours: +a.jours }));
     const resume = `${OBJECTIFS[a.objectif]} · ${a.niveau === 'debutant' ? 'débutant' : 'intermédiaire'} · ${a.jours}j · ${a.materiel}`;
     for (const admin of db.users.filter(isAdmin)) {
       sendPush(admin.id, { title: `🆕 ${user.name} a fini l'onboarding`, body: resume, tag: 'chat', url: '#/coach' });
