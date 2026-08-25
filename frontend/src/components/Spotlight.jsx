@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useLayoutEffect, useState } from 'react'
 import { useUI } from '../store/useUI.js'
 import { t } from '../lib/i18n.js'
 import { Button } from './ui.jsx'
@@ -15,15 +15,30 @@ export default function Spotlight() {
   const on = useUI(s => s.spotlight)
   const setSpotlight = useUI(s => s.setSpotlight)
   const [i, setI] = useState(0)
-  if (!on) return null
+  const [resolved, setResolved] = useState(null) // { idx, rect } once a live target is found
 
-  // Skip steps whose target is missing; past the end → done.
-  let idx = i
-  while (idx < STEPS.length && !document.querySelector(STEPS[idx].sel)) idx++
-  if (idx >= STEPS.length) { setSpotlight(false); return null }
+  // Resolve (and re-resolve on resize) the current step's target after commit —
+  // querying the DOM during render can run before a sibling's initial mount lands.
+  useLayoutEffect(() => {
+    if (!on) { setResolved(null); return }
 
-  const target = document.querySelector(STEPS[idx].sel)
-  const r = target.getBoundingClientRect()
+    // Skip steps whose target is missing; past the end → done.
+    let idx = i
+    while (idx < STEPS.length && !document.querySelector(STEPS[idx].sel)) idx++
+    if (idx >= STEPS.length) { setSpotlight(false); setResolved(null); return }
+
+    const update = () => {
+      const target = document.querySelector(STEPS[idx].sel)
+      setResolved(target ? { idx, rect: target.getBoundingClientRect() } : null)
+    }
+    update()
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
+  }, [on, i])
+
+  if (!on || !resolved) return null
+
+  const { idx, rect: r } = resolved
   const next = () => (idx + 1 >= STEPS.length ? setSpotlight(false) : setI(idx + 1))
 
   return <div className="spotlight-overlay" onClick={next}>
