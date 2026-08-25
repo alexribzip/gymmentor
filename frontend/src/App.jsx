@@ -17,6 +17,7 @@ import Modals from './components/Modals.jsx'
 import Toast from './components/Toast.jsx'
 import RestTimer from './components/RestTimer.jsx'
 import Login from './views/Login.jsx'
+import Onboarding from './views/Onboarding.jsx'
 import Home from './views/Home.jsx'
 import Plan from './views/Plan.jsx'
 import RoutineEdit from './views/RoutineEdit.jsx'
@@ -44,8 +45,22 @@ function Shell() {
   const loc = useLocation()
   const { S, user, ready } = useStore()
   const isGuest = useStore(s => s.isGuest())
+  const update = useStore(s => s.update)
   const langV = useLang()   // re-renders the whole shell when the language (pack) changes
   useEffect(() => { setNav(navigate) }, [navigate])
+  // First-run onboarding: a real (non-guest) user with no program yet gets routed to the
+  // wizard until they finish it or skip via "Later" (both set S.onboarded).
+  useEffect(() => {
+    if (user && !isGuest && !S.onboarded && !(S.routines || []).length && loc.pathname !== '/onboarding') navigate('/onboarding')
+  }, [user, S.onboarded, loc.pathname])
+  // Retry the coach-handoff POST at boot if it failed when the wizard finished offline.
+  useEffect(() => {
+    const pending = S._onboardingPending
+    if (!user || !pending) return
+    api('/api/onboarding/complete', { method: 'POST', body: JSON.stringify({ answers: pending }) })
+      .then(() => update(St => { delete St._onboardingPending }))
+      .catch(() => {})
+  }, [!!user])
   useEffect(() => { applyPrefs(S.theme, S.accent) }, [S.theme, S.accent])
   useEffect(() => { setLang(S.lang || 'en') }, [S.lang])
   useEffect(() => { document.documentElement.lang = S.lang || 'en' }, [langV, S.lang])
@@ -82,6 +97,7 @@ function Shell() {
         <ErrorBoundary>
           {!authed ? <Login /> : (
             <Routes>
+              <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/home" element={<Home />} />
               <Route path="/plan" element={<Plan />} />
               <Route path="/plan/r/:id" element={<RoutineEdit />} />
