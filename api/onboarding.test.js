@@ -75,3 +75,25 @@ test('welcomeText varies by objectif and includes the name', () => {
   assert.ok(a.includes('Marc') && b.includes('Marc'));
   assert.notEqual(a, b);
 });
+
+test('focus: invalid value is a 400, absent is accepted', async () => {
+  session = deps.db.users[1];
+  let r = await call('POST /api/onboarding/complete', { answers: { ...ANSWERS, focus: 'pecs' } });
+  assert.equal(r.code, 400);
+  r = await call('POST /api/onboarding/complete', { answers: ANSWERS });
+  assert.equal(r.code, 200);
+});
+
+test('focus reaches the push summary and the welcome text', async () => {
+  session = deps.db.users[1];
+  await call('POST /api/onboarding/complete', { answers: { ...ANSWERS, focus: 'bas' } });
+  assert.ok(pushes[0].payload.body.includes('bas du corps'));
+  const { loadChat } = await import('./chat-store.js');
+  const chat = loadChat(deps.DATA, 'cli1');
+  assert.ok(chat.messages[0].text.includes('bas du corps'));
+});
+
+test('welcomeText without focus says nothing about focus', () => {
+  const t = welcomeText('Marc', ANSWERS);
+  assert.ok(!t.includes('accent'));
+});
