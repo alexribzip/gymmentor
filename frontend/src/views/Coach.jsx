@@ -7,6 +7,7 @@ import { fmtDate, fmtVol, fmtDur } from '../lib/format.js'
 import { fmtWhen } from '../lib/audit.js'
 import { workoutVolume, setsDone } from '../lib/history.js'
 import { mergeMessages, lastId } from '../lib/chat-core.js'
+import { confirmSheet } from '../sheets.jsx'
 import Icon from '../components/Icon.jsx'
 import { Button } from '../components/ui.jsx'
 
@@ -115,9 +116,17 @@ export default function Coach() {
   useEffect(() => { if (!user?.admin) return; load(); const iv = setInterval(load, THREADS_MS); return () => clearInterval(iv) }, [])
   if (!user?.admin) return null
 
-  const toggleCoached = th => api('/api/coach/coached', { method: 'POST', body: JSON.stringify({ id: th.id, coached: !th.coached }) })
+  const setCoached = th => api('/api/coach/coached', { method: 'POST', body: JSON.stringify({ id: th.id, coached: !th.coached }) })
     .then(() => { toast(th.coached ? 'Coaching désactivé' : 'Coaching activé'); load() })
     .catch(e => toast(e.message))
+  // Activer = donner le chat illimité (l'offre payante) : on confirme pour
+  // éviter le clic accidentel. Désactiver reste direct (réversible en 1 tap).
+  const toggleCoached = th => th.coached ? setCoached(th) : confirmSheet({
+    title: 'Passer ' + th.name + ' en client coaché ?',
+    message: 'Messages illimités avec toi, sans passer par le paiement. À réserver aux clients qui ont réglé ou aux invités volontaires.',
+    confirmText: 'Activer',
+    onConfirm: () => setCoached(th)
+  })
 
   if (open) return <Thread th={open} back={() => setOpen(null)} reloadThreads={load} />
 
