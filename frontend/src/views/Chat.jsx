@@ -148,16 +148,23 @@ export default function Chat() {
     let stopped = false
     let timer = null
     let attempts = 0
+    // nav('/chat') strips the query — which changes loc.search and re-runs this effect,
+    // whose cleanup would kill the poll. So we only nav once the poll settles (success or
+    // exhaustion), never right after starting it.
     const tick = () => {
       attempts++
       api('/api/me').then(me => {
         if (stopped) return
-        if (me?.user?.coached) { useStore.getState().setUser(me.user); return }
+        if (me?.user?.coached) { useStore.getState().setUser(me.user); nav('/chat'); return }
         if (attempts < CHECKOUT_POLL_TRIES) timer = setTimeout(tick, CHECKOUT_POLL_MS)
-      }).catch(() => { if (!stopped && attempts < CHECKOUT_POLL_TRIES) timer = setTimeout(tick, CHECKOUT_POLL_MS) })
+        else nav('/chat')
+      }).catch(() => {
+        if (stopped) return
+        if (attempts < CHECKOUT_POLL_TRIES) timer = setTimeout(tick, CHECKOUT_POLL_MS)
+        else nav('/chat')
+      })
     }
     tick()
-    nav('/chat')
     return () => { stopped = true; if (timer) clearTimeout(timer) }
   }, [loc.search])
 

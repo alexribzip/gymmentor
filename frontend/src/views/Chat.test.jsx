@@ -8,19 +8,21 @@ const mocks = vi.hoisted(() => ({
   isGuest: false,
   config: {},
   search: '',
+  nav: vi.fn(),
+  setUser: vi.fn(),
   api: vi.fn(() => Promise.resolve({ messages: [], lastReadCoach: 0 })) // coached-shaped default; non-coached tests set discovery explicitly
 }))
 
 vi.mock('../store/useStore.js', () => {
   const useStore = selector => selector({ user: mocks.user, isGuest: () => mocks.isGuest, config: mocks.config })
-  useStore.getState = () => ({ setUser: () => {} })
+  useStore.getState = () => ({ setUser: mocks.setUser })
   return { useStore }
 })
 vi.mock('../store/useUI.js', () => ({
   useUI: selector => selector({ toast: () => {}, setChatUnread: () => {} })
 }))
 vi.mock('../lib/api.js', () => ({ api: (...a) => mocks.api(...a) }))
-vi.mock('../lib/nav.js', () => ({ nav: () => {} }))
+vi.mock('../lib/nav.js', () => ({ nav: (...a) => mocks.nav(...a) }))
 vi.mock('react-router-dom', () => ({ useLocation: () => ({ search: mocks.search }) }))
 
 import Chat from './Chat.jsx'
@@ -110,5 +112,36 @@ describe('Chat view states', () => {
     await act(async () => { await Promise.resolve() })
     expect(host.textContent).toContain('personal coach')
     expect(host.querySelector('textarea')).toBeFalsy()
+  })
+})
+
+describe('Chat view — checkout return (sub=ok)', () => {
+  beforeEach(() => { vi.useFakeTimers() })
+  afterEach(() => { vi.useRealTimers() })
+
+  it('poll survives the interim nav and activates the user once coached flips true', async () => {
+    mocks.user = { id: 'u1', name: 'Marc', coached: false }; mocks.isGuest = false
+    mocks.search = '?sub=ok'
+    let meCalls = 0
+    mocks.api.mockImplementation(path => {
+      if (path === '/api/me') {
+        meCalls++
+        return meCalls === 1
+          ? Promise.resolve({ user: { id: 'u1', name: 'Marc', coached: false } })
+          : Promise.resolve({ user: { id: 'u1', name: 'Marc', coached: true } })
+      }
+      return Promise.resolve({ messages: [], lastReadCoach: 0 })
+    })
+    render()
+    // Flush the first /api/me resolution (attempt #1, not coached yet).
+    await act(async () => { await Promise.resolve(); await Promise.resolve() })
+    expect(mocks.nav).not.toHaveBeenCalled()
+
+    // Drive the 2nd attempt (2s later) and flush the timer + promise chain it triggers.
+    await act(async () => { await vi.advanceTimersByTimeAsync(2500) })
+
+    expect(mocks.setUser).toHaveBeenCalledWith({ id: 'u1', name: 'Marc', coached: true })
+    expect(mocks.nav).toHaveBeenCalledWith('/chat')
+    expect(mocks.setUser.mock.invocationCallOrder[0]).toBeLessThan(mocks.nav.mock.invocationCallOrder[0])
   })
 })
