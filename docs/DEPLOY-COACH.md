@@ -44,6 +44,7 @@
     cp .env.example .env
     # Éditer .env : RP_ID=gymmentor.app  ORIGIN=https://gymmentor.app
     #               RP_NAME=GymMentor  WEB_PORT=8080
+    #  + GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET pour « Continuer avec Google » (client OAuth Web, redirect https://gymmentor.app/api/auth/google/callback)
     docker compose up -d --build        # build depuis le fork, PAS docker compose pull
 
 ## Premier compte = coach
@@ -68,6 +69,7 @@
 - [ ] Coach répond depuis /coach → notif push côté client, clic → ouvre #/chat.
 - [ ] « Vu » s'affiche sous le dernier message de chacun après lecture en face.
 - [ ] Désactiver le coaching du compte test → son onglet réaffiche l'upsell.
+- [ ] « Continuer avec Google » → compte créé, wizard, email visible dans la vue Coach (panneau Données).
 
 ## Rappels
 - **Backup automatique en place (25/08)** : cron quotidien 03h20 UTC sur la VM
