@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useStore } from '../store/useStore.js'
 import { EXDB, BODYPARTS, allExercises, equipmentOf } from '../lib/exercises.js'
+import { MUSCLES, MUSCLE_NAME, muscleGroupsOf } from '../lib/muscles.js'
 import { bestWeightFor } from '../lib/history.js'
 import { fmtNum } from '../lib/format.js'
 import { t } from '../lib/i18n.js'
@@ -13,23 +14,38 @@ export default function Library() {
   const S = useStore(s => s.S)
   const [q, setQ] = useState('')
   const [bp, setBp] = useState('')
+  const [mus, setMus] = useState('')
   const [eq, setEq] = useState('')
   const [shown, setShown] = useState(40)
   const ql = q.toLowerCase().trim()
   const base = allExercises(S).filter(e => (!bp || e.bp === bp) && (!ql || e.n.toLowerCase().includes(ql) || e.tg.includes(ql) || e.eq.includes(ql) || (e.desc || '').toLowerCase().includes(ql)))
-  const eqOpts = equipmentOf(base)
+  // A body part groups several muscles ("upper legs" holds glutes, quads,
+  // hamstrings…): once one is picked, offer one pill per primary muscle in it.
+  const primary = useMemo(() => {
+    const m = new Map()
+    for (const e of base) m.set(e.id, muscleGroupsOf(e)[0] || '')
+    return m
+  }, [S, bp, ql])
+  const musOpts = bp ? MUSCLES.filter(mu => base.some(e => primary.get(e.id) === mu)) : []
+  const musOn = musOpts.includes(mus) ? mus : ''
+  const base2 = musOn ? base.filter(e => primary.get(e.id) === musOn) : base
+  const eqOpts = equipmentOf(base2)
   // Drop the equipment filter if the search narrowed it away, so you never hit a dead end.
   const eqOn = eqOpts.includes(eq) ? eq : ''
-  const f = eqOn ? base.filter(e => e.eq === eqOn) : base
+  const f = eqOn ? base2.filter(e => e.eq === eqOn) : base2
 
   return <>
     <div className="hdr"><div><h1>{t('Exercises')}</h1><div className="sub">{t('{0} exercises with animations', EXDB.length)}</div></div></div>
     <div className="search" style={{ marginBottom: 10 }}><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
       <input className="input" placeholder={t('Search…')} value={q} onChange={e => { setQ(e.target.value); setShown(40) }} /></div>
-    <div className="chips" style={{ marginBottom: eqOpts.length > 1 ? 8 : 12 }}>
-      <button className={'chip nocap' + (!bp ? ' on' : '')} onClick={() => { setBp(''); setEq(''); setShown(40) }}>{t('All')}</button>
-      {BODYPARTS.map(b => <button key={b} className={'chip' + (bp === b ? ' on' : '')} onClick={() => { setBp(b); setEq(''); setShown(40) }}>{t(b)}</button>)}
+    <div className="chips" style={{ marginBottom: musOpts.length > 1 || eqOpts.length > 1 ? 8 : 12 }}>
+      <button className={'chip nocap' + (!bp ? ' on' : '')} onClick={() => { setBp(''); setMus(''); setEq(''); setShown(40) }}>{t('All')}</button>
+      {BODYPARTS.map(b => <button key={b} className={'chip' + (bp === b ? ' on' : '')} onClick={() => { setBp(b); setMus(''); setEq(''); setShown(40) }}>{t(b)}</button>)}
     </div>
+    {musOpts.length > 1 && <div className="chips" style={{ marginBottom: eqOpts.length > 1 ? 8 : 12 }}>
+      <button className={'chip nocap' + (!musOn ? ' on' : '')} onClick={() => { setMus(''); setShown(40) }}>{t('All muscles')}</button>
+      {musOpts.map(mu => <button key={mu} className={'chip' + (musOn === mu ? ' on' : '')} onClick={() => { setMus(mu); setShown(40) }}>{t(MUSCLE_NAME[mu])}</button>)}
+    </div>}
     {eqOpts.length > 1 && <div className="chips" style={{ marginBottom: 12 }}>
       <button className={'chip nocap' + (!eqOn ? ' on' : '')} onClick={() => { setEq(''); setShown(40) }}>{t('Any equipment')}</button>
       {eqOpts.map(x => <button key={x} className={'chip' + (eqOn === x ? ' on' : '')} onClick={() => { setEq(x); setShown(40) }}>{t(x)}</button>)}

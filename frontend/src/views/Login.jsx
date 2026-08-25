@@ -56,7 +56,7 @@ export default function Login() {
   }
   const head = <>
     <div style={{ fontSize: 54, display: 'flex', justifyContent: 'center', color: 'var(--acc)' }}><Icon name="dumbbell" /></div>
-    <h1 style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-.028em', margin: '10px 0 4px' }}>openGym</h1>
+    <h1 style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-.028em', margin: '10px 0 4px' }}>GymMentor</h1>
   </>
   const wrap = { display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '78vh', textAlign: 'center' }
 
@@ -94,7 +94,7 @@ export default function Login() {
           <div style={{ height: 10 }} />
         </>}
         <div className="card small muted" style={{ textAlign: 'left' }}>{canGuest
-          ? t("This browser doesn't support passkeys — you can still use openGym locally on this device.")
+          ? t("This browser doesn't support passkeys — you can still use GymMentor locally on this device.")
           // Without passkeys and without the guest entrance there is no way in from this browser,
           // so say that plainly instead of offering a local profile that cannot be created.
           : t("This browser doesn't support passkeys, and this instance requires an account. Try a browser or device with passkey support.")}</div>
