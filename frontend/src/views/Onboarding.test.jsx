@@ -36,7 +36,7 @@ const click = txt => act(() => {
 describe('Onboarding wizard', () => {
   it('walks the 6 steps and writes the program', async () => {
     render()
-    click('minute')            // step 1 → 2 (« Start — 1 minute »)
+    click('Create my program')  // step 1 → 2
     click('muscle')            // objectif → « Build muscle »
     click('new to this')       // niveau → « I'm new to this »
     click('3 days')            // jours → « 3 days / week »

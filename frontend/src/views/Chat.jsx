@@ -19,7 +19,7 @@ function AccountGate() {
     <div className="card" style={{ textAlign: 'center', padding: '28px 18px' }}>
       <div style={{ fontSize: 34, color: 'var(--label-3)' }}><Icon name="chat" /></div>
       <h3>{t('Chat needs an account')}</h3>
-      <p className="muted small">{t('Create your profile to talk to your coach — your workouts sync too.')}</p>
+      <p className="muted small">{t('Create your profile to talk to your coach. Your workouts sync too.')}</p>
       <Button variant="primary" onClick={() => nav('/settings')}>{t('Create profile')}</Button>
     </div>
   </div>
@@ -102,7 +102,7 @@ function Conversation({ coached }) {
       {t('Discovery: {0} messages left with your coach', discovery.max - discovery.used)}
     </div>}
     <div className="chatlog">
-      {!msgs.length && <div className="empty small">{t('Say hi — your coach reads everything.')}</div>}
+      {!msgs.length && <div className="empty small">{t('Say hi, your coach reads everything.')}</div>}
       {msgs.map(m => <div key={m.id} className={'bubble' + (m.from === 'client' ? ' mine' : '')}>
         {m.text}
         {m === lastMine && m.id <= lastReadCoach && <div className="seen">{t('Seen')}</div>}

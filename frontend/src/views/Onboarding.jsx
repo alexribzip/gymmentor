@@ -54,8 +54,8 @@ export default function Onboarding() {
     {name === 'welcome' && <div className="card" style={{ textAlign: 'center', padding: '32px 18px' }}>
       <div style={{ fontSize: 40 }}>👋</div>
       <h2>{t("Let's build your first program")}</h2>
-      <p className="muted small">{t('4 quick questions — about a minute.')}</p>
-      <Button variant="primary" onClick={() => setStep(1)}>{t('Start — 1 minute')}</Button>
+      <p className="muted small">{t('4 quick questions, about a minute.')}</p>
+      <Button variant="primary" onClick={() => setStep(1)}>{t('Create my program')}</Button>
     </div>}
 
     {['objectif', 'niveau', 'jours', 'materiel'].includes(name) && <div className="card" style={{ padding: '22px 16px' }}>
@@ -77,9 +77,9 @@ export default function Onboarding() {
       <h3 style={{ marginTop: 0 }}>{t('Your program')}</h3>
       {preview.routines.map(r => <div key={r.id} style={{ marginBottom: 12 }}>
         <div className="tt">{r.emoji && <Icon name={r.emoji} style={{ marginRight: 6 }} />}{r.name}</div>
-        {r.ex.map(e => <div key={e.id} className="small muted" style={{ padding: '3px 0' }}>{exOr(e.id).n} — {e.sets}×{e.reps}</div>)}
+        {r.ex.map(e => <div key={e.id} className="small muted" style={{ padding: '3px 0' }}>{exOr(e.id).n} · {e.sets}×{e.reps}</div>)}
       </div>)}
-      <p className="small muted">{t('Your coach will review it — you can adjust everything later in Plan.')}</p>
+      <p className="small muted">{t('Your coach will review it. You can adjust everything later in Plan.')}</p>
       <Button variant="primary" onClick={finish}>{t("Let's go 💪")}</Button>
     </div>}
   </div>

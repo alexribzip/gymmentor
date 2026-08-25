@@ -8,14 +8,16 @@ const JOURS = [2, 3, 4];
 const MATERIELS = { salle: 'en salle', maison: 'avec haltères à la maison', pdc: 'au poids du corps' };
 
 // French on purpose: the coach speaks French (V1 target market).
+// Written to read like a real DM typed on a phone: short sentences, no dashes,
+// each objectif has its own shape and length so the three never feel templated.
 export function welcomeText(name, a) {
-  const intro = `Salut ${name} 👋 Je suis Alexis, ton coach ici.`;
-  const prog = {
-    muscle: `J'ai vu ton programme prise de muscle, ${a.jours} séances/semaine ${MATERIELS[a.materiel]} — bonne base pour construire.`,
-    force: `J'ai vu ton programme force, ${a.jours} séances/semaine ${MATERIELS[a.materiel]} — on va chercher des barres lourdes, techniquement propres.`,
-    forme: `J'ai vu ton programme remise en forme, ${a.jours} séances/semaine ${MATERIELS[a.materiel]} — la régularité va tout changer.`
+  const j = a.jours;
+  const mat = MATERIELS[a.materiel];
+  return {
+    muscle: `Salut ${name} ! Moi c'est Alexis, ton coach. Je viens de voir ton programme, prise de muscle sur ${j} séances par semaine ${mat}. Bon choix pour démarrer. Si t'as une question sur un exo ou une charge, écris-moi ici, je réponds dans la journée.`,
+    force: `Salut ${name}, Alexis, ton coach. Ton programme force est posé, ${j} séances par semaine ${mat}. On va monter les charges petit à petit, la technique d'abord. Dès que t'as un doute sur un mouvement tu m'écris ici, je suis là pour ça.`,
+    forme: `Salut ${name} ! Alexis, ton coach. J'ai vu ton programme remise en forme, ${j} séances par semaine ${mat}. Le plus dur c'est les 3 premières semaines, après ça roule tout seul. Si t'as la moindre question tu m'écris ici et je te réponds dans la journée.`
   }[a.objectif];
-  return `${intro} ${prog} Une question, un doute sur un exercice ? Je suis là — réponds-moi ici.`;
 }
 
 const valid = a => a && OBJECTIFS[a.objectif] && NIVEAUX.includes(a.niveau)
