@@ -3,15 +3,22 @@
    `deps` so this module has no reach into server.js's module-locals. */
 import { loadChat, appendMessage, markRead, unreadFor } from './chat-store.js';
 
+export const DISCOVERY_MSGS = 5;
+
 export function registerChatRoutes(routes, deps) {
   const { DATA, db, saveDb, json, readSession, requireAdmin, isAdmin, sendPush, audit, readState, livePresence, RP_NAME } = deps;
 
-  // Client guard: signed in AND flagged coached. The distinct 'not-coached'
-  // error is what flips the front to the upsell screen.
-  const requireCoached = (req, res) => {
+  // Chat access: coached users are unlimited. A signed-in non-coached user is
+  // in "discovery": full read access, and up to DISCOVERY_MSGS sent messages —
+  // then the same 403 'not-coached' the front already maps to the upsell.
+  const requireChatAccess = (req, res, { write } = {}) => {
     const user = readSession(req);
     if (!user) { json(res, 401, { error: 'not signed in' }); return null; }
-    if (!user.coached) { json(res, 403, { error: 'not-coached' }); return null; }
+    if (user.coached) return user;
+    if (write) {
+      const used = loadChat(DATA, user.id).messages.filter(m => m.from === 'client').length;
+      if (used >= DISCOVERY_MSGS) { json(res, 403, { error: 'not-coached' }); return null; }
+    }
     return user;
   };
 
@@ -20,13 +27,15 @@ export function registerChatRoutes(routes, deps) {
 
   /* ---------- client ---------- */
   routes['GET /api/chat'] = async (req, res) => {
-    const user = requireCoached(req, res); if (!user) return;
+    const user = requireChatAccess(req, res); if (!user) return;
     const chat = loadChat(DATA, user.id);
-    json(res, 200, { messages: after(chat, +q(req).get('after') || 0), lastReadCoach: chat.lastReadCoach });
+    const out = { messages: after(chat, +q(req).get('after') || 0), lastReadCoach: chat.lastReadCoach };
+    if (!user.coached) out.discovery = { used: chat.messages.filter(m => m.from === 'client').length, max: DISCOVERY_MSGS };
+    json(res, 200, out);
   };
 
   routes['POST /api/chat'] = async (req, res) => {
-    const user = requireCoached(req, res); if (!user) return;
+    const user = requireChatAccess(req, res, { write: true }); if (!user) return;
     const body = await deps.readBody(req);
     let msg;
     try { msg = appendMessage(DATA, user.id, 'client', body.text); }
@@ -39,14 +48,14 @@ export function registerChatRoutes(routes, deps) {
   };
 
   routes['POST /api/chat/read'] = async (req, res) => {
-    const user = requireCoached(req, res); if (!user) return;
+    const user = requireChatAccess(req, res); if (!user) return;
     const body = await deps.readBody(req);
     markRead(DATA, user.id, 'client', body.upTo);
     json(res, 200, { ok: true });
   };
 
   routes['GET /api/chat/unread'] = async (req, res) => {
-    const user = requireCoached(req, res); if (!user) return;
+    const user = requireChatAccess(req, res); if (!user) return;
     json(res, 200, { n: unreadFor(loadChat(DATA, user.id), 'client') });
   };
 

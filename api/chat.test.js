@@ -48,11 +48,46 @@ beforeEach(() => {
   registerChatRoutes(routes, deps);
 });
 
-test('client GET /api/chat refuses non-coached with not-coached', async () => {
-  session = deps.db.users[2];          // cli2, not coached
+test('discovery: non-coached can read and gets discovery counters', async () => {
+  session = deps.db.users[2];                    // cli2, non coaché
   const r = await call('GET /api/chat');
-  assert.equal(r.code, 403);
-  assert.equal(r.obj.error, 'not-coached');
+  assert.equal(r.code, 200);
+  assert.deepEqual(r.obj.discovery, { used: 0, max: 5 });
+});
+
+test('discovery: non-coached can send up to DISCOVERY_MSGS then 403', async () => {
+  session = deps.db.users[2];
+  for (let i = 0; i < 5; i++) {
+    const r = await call('POST /api/chat', { body: { text: 'msg ' + i } });
+    assert.equal(r.code, 200);
+  }
+  const r6 = await call('POST /api/chat', { body: { text: 'one too many' } });
+  assert.equal(r6.code, 403);
+  assert.equal(r6.obj.error, 'not-coached');
+  const g = await call('GET /api/chat');
+  assert.equal(g.obj.discovery.used, 5);
+});
+
+test('discovery: coach replies do not consume the quota', async () => {
+  session = deps.db.users[2];
+  await call('POST /api/chat', { body: { text: 'hi' } });
+  session = { id: 'coach1', name: 'Alexis', admin: true };
+  await call('POST /api/coach/thread', { body: { id: 'cli2', text: 'réponse' } });
+  session = deps.db.users[2];
+  const g = await call('GET /api/chat');
+  assert.equal(g.obj.discovery.used, 1);
+});
+
+test('coached user keeps unlimited access and no discovery field', async () => {
+  session = deps.db.users[1];                    // cli1, coaché
+  const r = await call('GET /api/chat');
+  assert.equal(r.obj.discovery, undefined);
+});
+
+test('discovery: read and unread routes are open to non-coached', async () => {
+  session = deps.db.users[2];
+  assert.equal((await call('POST /api/chat/read', { body: { upTo: 1 } })).code, 200);
+  assert.equal((await call('GET /api/chat/unread')).code, 200);
 });
 
 test('client POST appends and pushes every admin', async () => {
