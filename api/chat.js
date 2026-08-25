@@ -68,7 +68,7 @@ export function registerChatRoutes(routes, deps) {
       const S = readState(u.id) || {};
       const workouts = S.workouts || [];
       return {
-        id: u.id, name: u.name, coached: !!u.coached, disabled: !!u.disabled,
+        id: u.id, name: u.name, email: u.email || null, coached: !!u.coached, disabled: !!u.disabled,
         lastMsg: last ? { from: last.from, text: last.text.slice(0, 80), ts: last.ts } : null,
         unread: unreadFor(chat, 'coach'),
         lastWorkout: workouts.length ? workouts[workouts.length - 1].d : null,

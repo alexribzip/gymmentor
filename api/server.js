@@ -11,6 +11,7 @@ import {
 import webpush from 'web-push';
 import { registerChatRoutes } from './chat.js';
 import { registerOnboardingRoutes } from './onboarding.js';
+import { registerGoogleRoutes } from './google-auth.js';
 
 const PORT = +(process.env.PORT || 3000);
 const DATA = process.env.DATA_DIR || '/data';
@@ -26,6 +27,7 @@ const INVITE_ONLY = /^(1|true|yes|on)$/i.test(process.env.INVITE_ONLY || '');
 // out of is still the wrong front door (#42). Default ON, so existing instances are unchanged;
 // the polarity is inverted from INVITE_ONLY because the safe default here is the permissive one.
 const ALLOW_GUEST = !/^(0|false|no|off)$/i.test(process.env.ALLOW_GUEST || '');
+let GOOGLE_ON = false;
 // 90 days keeps someone who trains a few times a week permanently signed in without a stolen
 // cookie staying good for a year. Overridable because a family instance and one on the open
 // internet don't want the same number. Only affects cookies minted from now on — the expiry is
@@ -357,7 +359,7 @@ const routes = {
   'GET /api/health': async (req, res) => json(res, 200, { ok: true, users: db.users.length }),
 
   // Public config the login screen needs before anyone is signed in.
-  'GET /api/config': async (req, res) => json(res, 200, { invite_only: INVITE_ONLY, allow_guest: ALLOW_GUEST }),
+  'GET /api/config': async (req, res) => json(res, 200, { invite_only: INVITE_ONLY, allow_guest: ALLOW_GUEST, google: GOOGLE_ON }),
 
   'GET /api/me': async (req, res) => {
     const user = readSession(req);
@@ -634,7 +636,7 @@ const routes = {
     if (!u) return json(res, 404, { error: 'no such user' });
     const S = readState(u.id) || {};
     json(res, 200, {
-      user: { id: u.id, name: u.name, created: u.created || null, disabled: !!u.disabled, admin: isAdmin(u), invitedBy: u.invitedBy || null },
+      user: { id: u.id, name: u.name, email: u.email || null, created: u.created || null, disabled: !!u.disabled, admin: isAdmin(u), invitedBy: u.invitedBy || null },
       unit: S.unit || 'kg',
       lastSync: S._ts || null,
       routines: (S.routines || []).map(r => ({ id: r.id, name: r.name, emoji: r.emoji, count: (r.ex || []).length })),
@@ -736,6 +738,8 @@ registerChatRoutes(routes, {
 });
 
 registerOnboardingRoutes(routes, { DATA, db, saveDb, json, readBody, readSession, sendPush, isAdmin });
+
+GOOGLE_ON = registerGoogleRoutes(routes, { db, saveDb, json, sign, verifySig, sessionCookie, ORIGIN, INVITE_ONLY, audit });
 
 http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');

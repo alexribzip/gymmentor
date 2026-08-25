@@ -22,7 +22,7 @@ beforeEach(() => {
   const db = {
     users: [
       { id: 'coach1', name: 'Alexis', admin: true },
-      { id: 'cli1', name: 'Marc', coached: true },
+      { id: 'cli1', name: 'Marc', coached: true, email: 'marc@gmail.com' },
       { id: 'cli2', name: 'Zoe' }
     ]
   };
@@ -123,6 +123,7 @@ test('coach threads exclude admins, sort by last message, count unread', async (
   const r = await call('GET /api/coach/threads');
   assert.equal(r.obj.threads.length, 2);                    // cli1 + cli2, pas coach1
   assert.equal(r.obj.threads[0].id, 'cli1');                // dernier message en tête
+  assert.equal(r.obj.threads[0].email, 'marc@gmail.com');
   assert.equal(r.obj.threads[0].unread, 1);
   assert.equal(r.obj.threads[0].lastWorkout, '2026-08-20');
 });
