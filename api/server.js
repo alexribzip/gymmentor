@@ -10,6 +10,7 @@ import {
 } from '@simplewebauthn/server';
 import webpush from 'web-push';
 import { registerChatRoutes } from './chat.js';
+import { registerOnboardingRoutes } from './onboarding.js';
 
 const PORT = +(process.env.PORT || 3000);
 const DATA = process.env.DATA_DIR || '/data';
@@ -733,6 +734,8 @@ registerChatRoutes(routes, {
   DATA, db, saveDb, json, readBody, readSession, requireAdmin, isAdmin,
   sendPush, audit, readState, livePresence, RP_NAME
 });
+
+registerOnboardingRoutes(routes, { DATA, db, saveDb, json, readBody, readSession, sendPush, isAdmin });
 
 http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
