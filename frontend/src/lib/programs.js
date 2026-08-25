@@ -58,9 +58,68 @@ function skeleton(jours, materiel) {
   return { routines: starterRoutines(), jours: 3 }
 }
 
-export function buildProgram({ objectif, niveau, jours, materiel }) {
+// Zone of every exercise id used by the templates, the upstream starter PPL
+// and the swap pools. bas = lower body · push/pull = upper · tronc = core
+// (never boosted, never sacrificed). Ids outside this map count as tronc.
+// Verified against EXDB (lib/exercises-data.js) id → n/bp/tg/eq — see
+// task-1-report.md for the full verification table. One correction vs the
+// draft: 3433 "swimmer kicks v.2 (male)" is bp:upper legs/tg:glutes in EXDB,
+// so it belongs to 'bas', not 'tronc'.
+export const ZONES = {
+  // templates + starter
+  '0043': 'bas', '1459': 'bas', '1760': 'bas', '0336': 'bas', '3013': 'bas',
+  '3119': 'bas', '0085': 'bas', '0739': 'bas', '0585': 'bas', '0586': 'bas', '0605': 'bas',
+  '0289': 'push', '0290': 'push', '0334': 'push', '0662': 'push', '0129': 'push',
+  '0025': 'push', '0047': 'push', '0426': 'push', '0241': 'push', '0251': 'push',
+  '0293': 'pull', '2330': 'pull', '0294': 'pull', '2300': 'pull',
+  '0027': 'pull', '1323': 'pull', '0031': 'pull', '0313': 'pull',
+  '0274': 'tronc', '0630': 'tronc', '1160': 'tronc',
+  // pools
+  '1409': 'bas', '0431': 'bas', '0410': 'bas', '3645': 'bas', '3769': 'bas',
+  '0437': 'pull', '0348': 'pull', '0259': 'push',
+  '0180': 'pull', '0044': 'bas', '3433': 'bas'
+}
+
+export const FOCUS_ZONES = { bas: ['bas'], haut: ['push', 'pull'], dos: ['pull'] }
+const SACRIFICE = { bas: 'push', haut: 'bas', dos: 'push' }
+
+export const SWAP_POOLS = {
+  bas: { salle: ['1409', '0431'], maison: ['0431', '0410'], pdc: ['3645', '3769'] },
+  haut: { salle: ['0437', '0348'], maison: ['0437', '0348'], pdc: ['0259', '0129'] },
+  dos: { salle: ['0180', '0044'], maison: ['0348', '0293'], pdc: ['3433', '2300'] }
+}
+
+const zone = id => ZONES[id] || 'tronc'
+
+// One swap per session: first exercise of the sacrificed zone is replaced by
+// the first pool id not already in the session. No candidate → no swap.
+function applySwap(routines, focus, materiel) {
+  const pool = SWAP_POOLS[focus]?.[materiel]
+  const sac = SACRIFICE[focus]
+  if (!pool || !sac) return routines
+  return routines.map(r => {
+    const idx = r.ex.findIndex(e => zone(e.id) === sac)
+    if (idx < 0) return r
+    const ids = r.ex.map(e => e.id)
+    const repl = pool.find(id => !ids.includes(id))
+    if (!repl) return r
+    const ex = r.ex.slice()
+    ex[idx] = { ...ex[idx], id: repl }
+    return { ...r, ex }
+  })
+}
+
+const applyBoost = (routines, focus) => {
+  const zones = FOCUS_ZONES[focus]
+  if (!zones) return routines
+  return routines.map(r => ({ ...r, ex: r.ex.map(e => zones.includes(zone(e.id)) ? { ...e, sets: Math.min(5, e.sets + 1) } : e) }))
+}
+
+export function buildProgram({ objectif, niveau, jours, materiel, focus = 'equilibre' }) {
   const sk = skeleton(jours, materiel)
-  let routines = clampReps(sk.routines, REP_RANGES[objectif] || REP_RANGES.muscle)
+  let routines = applySwap(sk.routines, focus, materiel)
+  routines = clampReps(routines, REP_RANGES[objectif] || REP_RANGES.muscle)
+  routines = applyBoost(routines, focus)
   if (niveau === 'debutant') routines = trimForBeginner(routines)
   const slots = WEEK_SLOTS[sk.jours]
   const week = {}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildProgram, REP_RANGES, WEEK_SLOTS } from './programs.js'
+import { buildProgram, REP_RANGES, WEEK_SLOTS, ZONES, FOCUS_ZONES, SWAP_POOLS } from './programs.js'
 
 const OBJ = ['muscle', 'force', 'forme']
 const NIV = ['debutant', 'inter']
@@ -52,5 +52,58 @@ describe('buildProgram', () => {
     const p = buildProgram({ objectif: 'muscle', niveau: 'inter', jours: 3, materiel: 'salle' })
     expect(p.routines.length).toBe(3)
     expect(new Set(p.routines.map(r => r.name)).size).toBe(3)
+  })
+})
+
+describe('focus', () => {
+  const base = { objectif: 'muscle', niveau: 'inter', jours: 3, materiel: 'maison' }
+
+  it('every template and starter exercise has a zone', () => {
+    for (const materiel of ['salle', 'maison', 'pdc']) for (const jours of [2, 3, 4]) {
+      const p = buildProgram({ ...base, jours, materiel })
+      for (const r of p.routines) for (const e of r.ex) expect(ZONES[e.id], e.id + ' sans zone').toBeTruthy()
+    }
+  })
+
+  it('absent or equilibre focus leaves the program unchanged', () => {
+    const a = buildProgram(base)
+    const b = buildProgram({ ...base, focus: 'equilibre' })
+    const strip = p => p.routines.map(r => r.ex.map(e => [e.id, e.sets, e.reps]))
+    expect(strip(a)).toEqual(strip(b))
+  })
+
+  it('focus bas: boosted lower sets and a pool exercise in each session', () => {
+    const eq = buildProgram(base)
+    const bas = buildProgram({ ...base, focus: 'bas' })
+    for (let i = 0; i < bas.routines.length; i++) {
+      const ids = bas.routines[i].ex.map(e => e.id)
+      expect(SWAP_POOLS.bas.maison.some(id => ids.includes(id))).toBe(true)
+      // chaque exercice 'bas' déjà présent dans la version équilibrée gagne +1 série
+      for (const e of eq.routines[i].ex) {
+        if (ZONES[e.id] === 'bas') {
+          const after = bas.routines[i].ex.find(x => x.id === e.id)
+          if (after) expect(after.sets).toBe(Math.min(5, e.sets + 1))
+        }
+      }
+    }
+  })
+
+  it('focus haut and dos boost their zones', () => {
+    const haut = buildProgram({ ...base, focus: 'haut' })
+    const dos = buildProgram({ ...base, focus: 'dos' })
+    expect(haut.routines.some(r => r.ex.some(e => ['push', 'pull'].includes(ZONES[e.id]) && e.sets >= 4))).toBe(true)
+    expect(dos.routines.some(r => r.ex.some(e => ZONES[e.id] === 'pull' && e.sets >= 4))).toBe(true)
+  })
+
+  it('all 48 combinations still produce valid programs', () => {
+    for (const objectif of ['muscle', 'force', 'forme']) for (const niveau of ['debutant', 'inter'])
+      for (const jours of [2, 3, 4]) for (const materiel of ['salle', 'maison', 'pdc'])
+        for (const focus of ['equilibre', 'bas', 'haut', 'dos']) {
+          const p = buildProgram({ objectif, niveau, jours, materiel, focus })
+          for (const r of p.routines) {
+            expect(r.ex.length).toBeGreaterThanOrEqual(3)
+            for (const e of r.ex) { expect(e.sets).toBeLessThanOrEqual(5); expect(e.sets).toBeGreaterThanOrEqual(3) }
+          }
+        }
   })
 })
