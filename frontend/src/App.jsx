@@ -62,8 +62,10 @@ function Shell() {
       .catch(() => {})
   }, [!!user])
   useEffect(() => { applyPrefs(S.theme, S.accent) }, [S.theme, S.accent])
-  useEffect(() => { setLang(S.lang || 'en') }, [S.lang])
-  useEffect(() => { document.documentElement.lang = S.lang || 'en' }, [langV, S.lang])
+  // French by default — GymMentor's launch market; the language picker in
+  // Settings still lets anyone switch.
+  useEffect(() => { setLang(S.lang || 'fr') }, [S.lang])
+  useEffect(() => { document.documentElement.lang = S.lang || 'fr' }, [langV, S.lang])
   // every tab/route change starts at the top of the page
   useEffect(() => { window.scrollTo(0, 0) }, [loc.pathname])
   // OAuth callback may bounce here when the instance is invite-only.
