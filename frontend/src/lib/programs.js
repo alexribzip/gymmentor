@@ -44,6 +44,9 @@ const mk = spec => spec.map(([name, emoji, list]) =>
 const clampReps = (routines, [lo, hi]) => routines.map(r =>
   ({ ...r, ex: r.ex.map(e => ({ ...e, reps: Math.min(hi, Math.max(lo, e.reps)) })) }))
 
+// Note: for débutant+pdc+focus bas, Circuit C loses its swapped-in exercise here
+// (the sacrificed push sat last) — accepted: the zone boost and the other two
+// sessions keep the focus expressed. Not a bug, do not "fix" without the spec.
 const trimForBeginner = routines => routines.map(r => ({ ...r, ex: r.ex.slice(0, -1) }))
 
 // jours × materiel → squelette + jours réellement posés (bascules incluses)
