@@ -12,6 +12,7 @@ import webpush from 'web-push';
 import { registerChatRoutes } from './chat.js';
 import { registerOnboardingRoutes } from './onboarding.js';
 import { registerGoogleRoutes } from './google-auth.js';
+import { registerBillingRoutes } from './billing.js';
 
 const PORT = +(process.env.PORT || 3000);
 const DATA = process.env.DATA_DIR || '/data';
@@ -28,6 +29,7 @@ const INVITE_ONLY = /^(1|true|yes|on)$/i.test(process.env.INVITE_ONLY || '');
 // the polarity is inverted from INVITE_ONLY because the safe default here is the permissive one.
 const ALLOW_GUEST = !/^(0|false|no|off)$/i.test(process.env.ALLOW_GUEST || '');
 let GOOGLE_ON = false;
+let BILLING_ON = false;
 // 90 days keeps someone who trains a few times a week permanently signed in without a stolen
 // cookie staying good for a year. Overridable because a family instance and one on the open
 // internet don't want the same number. Only affects cookies minted from now on — the expiry is
@@ -50,7 +52,7 @@ try { db = JSON.parse(fs.readFileSync(dbFile, 'utf8')); } catch {}
 db.subs = db.subs || [];
 db.invites = db.invites || [];
 const isAdmin = user => !!user && (user.admin === true || ADMIN_UIDS.includes(user.id));
-const publicUser = u => ({ id: u.id, name: u.name, admin: isAdmin(u), coached: !!u.coached });
+const publicUser = u => ({ id: u.id, name: u.name, admin: isAdmin(u), coached: !!u.coached, billing: !!u.stripeCustomer });
 function saveDb() { atomicWrite(dbFile, JSON.stringify(db, null, 2)); }
 function atomicWrite(file, content) {
   const tmp = file + '.tmp';
@@ -359,7 +361,7 @@ const routes = {
   'GET /api/health': async (req, res) => json(res, 200, { ok: true, users: db.users.length }),
 
   // Public config the login screen needs before anyone is signed in.
-  'GET /api/config': async (req, res) => json(res, 200, { invite_only: INVITE_ONLY, allow_guest: ALLOW_GUEST, google: GOOGLE_ON }),
+  'GET /api/config': async (req, res) => json(res, 200, { invite_only: INVITE_ONLY, allow_guest: ALLOW_GUEST, google: GOOGLE_ON, billing: BILLING_ON }),
 
   'GET /api/me': async (req, res) => {
     const user = readSession(req);
@@ -740,6 +742,8 @@ registerChatRoutes(routes, {
 registerOnboardingRoutes(routes, { DATA, db, saveDb, json, readBody, readSession, sendPush, isAdmin });
 
 GOOGLE_ON = registerGoogleRoutes(routes, { db, saveDb, json, sign, verifySig, sessionCookie, ORIGIN, INVITE_ONLY, audit });
+
+BILLING_ON = registerBillingRoutes(routes, { db, saveDb, json, readSession, sendPush, isAdmin, ORIGIN, audit });
 
 http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
