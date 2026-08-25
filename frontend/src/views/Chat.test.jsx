@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 const mocks = vi.hoisted(() => ({
   user: null,
   isGuest: false,
-  api: vi.fn(() => Promise.resolve({ messages: [], lastReadCoach: 0 }))
+  api: vi.fn(() => Promise.resolve({ messages: [], lastReadCoach: 0, discovery: { used: 0, max: 5 } }))
 }))
 
 vi.mock('../store/useStore.js', () => ({
@@ -38,9 +38,10 @@ describe('Chat view states', () => {
     render()
     expect(host.textContent).toContain('account')
   })
-  it('signed-in non-coached → upsell', () => {
+  it('signed-in non-coached → upsell', async () => {
     mocks.user = { id: 'u1', name: 'Marc', coached: false }; mocks.isGuest = false
     render()
+    await act(async () => { await Promise.resolve() })
     expect(host.textContent).toContain('personal coach')
   })
   it('coached → conversation with input', () => {
@@ -62,5 +63,26 @@ describe('Chat view states', () => {
     expect(readCall).toBeTruthy()
     expect(readCall[1].body).toContain('"upTo":2')
     expect(host.textContent).toContain('Seen')
+  })
+  it('non-coached with messages → conversation with discovery banner', async () => {
+    mocks.user = { id: 'u1', name: 'Marc', coached: false }; mocks.isGuest = false
+    mocks.api.mockImplementation(path => path.startsWith('/api/chat?')
+      ? Promise.resolve({ messages: [{ id: 1, from: 'coach', text: 'bienvenue', ts: 1 }], lastReadCoach: 0, discovery: { used: 2, max: 5 } })
+      : Promise.resolve({ ok: true }))
+    render()
+    await act(async () => { await Promise.resolve() })
+    expect(host.textContent).toContain('bienvenue')
+    expect(host.textContent).toContain('3')          // 5-2 messages restants
+    expect(host.querySelector('textarea')).toBeTruthy()
+  })
+  it('non-coached with exhausted quota → readable thread, upsell instead of input', async () => {
+    mocks.user = { id: 'u1', name: 'Marc', coached: false }; mocks.isGuest = false
+    mocks.api.mockImplementation(path => path.startsWith('/api/chat?')
+      ? Promise.resolve({ messages: [{ id: 1, from: 'client', text: 'q', ts: 1 }], lastReadCoach: 1, discovery: { used: 5, max: 5 } })
+      : Promise.resolve({ ok: true }))
+    render()
+    await act(async () => { await Promise.resolve() })
+    expect(host.textContent).toContain('personal coach')
+    expect(host.querySelector('textarea')).toBeFalsy()
   })
 })

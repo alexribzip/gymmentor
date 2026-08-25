@@ -57,13 +57,13 @@ function Shell() {
   // Chat badge — light unread poll; push is the instant signal, this keeps the dot honest.
   const setChatUnread = useUI(s => s.setChatUnread)
   useEffect(() => {
-    if (!user?.coached) return
+    if (!user) return
     const load = () => { if (!document.hidden) api('/api/chat/unread').then(r => setChatUnread(r.n)).catch(() => {}) }
     load()
     const iv = setInterval(load, 60000)
     document.addEventListener('visibilitychange', load)
     return () => { clearInterval(iv); document.removeEventListener('visibilitychange', load) }
-  }, [user?.coached])
+  }, [!!user])
 
   const authed = user || isGuest
   if (!ready && !authed) return (

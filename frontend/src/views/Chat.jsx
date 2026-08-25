@@ -25,25 +25,32 @@ function AccountGate() {
   </div>
 }
 
+// The sales pitch body — reused full-screen (no messages yet) and inline once a
+// non-coached user's discovery quota runs out (replaces the message input).
+function UpsellCard() {
+  return <div className="card" style={{ padding: '24px 18px' }}>
+    <h3 style={{ marginTop: 0 }}>{t('Your personal coach')}</h3>
+    <ul className="small" style={{ paddingLeft: 18, margin: '10px 0 16px', display: 'grid', gap: 8 }}>
+      <li>{t('A real coach who follows your training')}</li>
+      <li>{t('He sees your workouts and adjusts your plan')}</li>
+      <li>{t('Unlimited messages, answers within the day')}</li>
+    </ul>
+    <a className="btn primary" style={{ display: 'block', textAlign: 'center' }} href={CONTACT_URL}>{t('Get coaching')}</a>
+  </div>
+}
+
 // The in-app sales pitch — what a paying subscriber gets.
 function Upsell() {
   return <div className="narrow">
     <div className="hdr"><h1>{t('Coach')}</h1></div>
-    <div className="card" style={{ padding: '24px 18px' }}>
-      <h3 style={{ marginTop: 0 }}>{t('Your personal coach')}</h3>
-      <ul className="small" style={{ paddingLeft: 18, margin: '10px 0 16px', display: 'grid', gap: 8 }}>
-        <li>{t('A real coach who follows your training')}</li>
-        <li>{t('He sees your workouts and adjusts your plan')}</li>
-        <li>{t('Unlimited messages, answers within the day')}</li>
-      </ul>
-      <a className="btn primary" style={{ display: 'block', textAlign: 'center' }} href={CONTACT_URL}>{t('Get coaching')}</a>
-    </div>
+    <UpsellCard />
   </div>
 }
 
-function Conversation() {
+function Conversation({ coached }) {
   const [msgs, setMsgs] = useState([])
   const [lastReadCoach, setLastReadCoach] = useState(0)
+  const [discovery, setDiscovery] = useState(null) // non-coached only: {used, max}
   const [text, setText] = useState('')
   const [sending, setSending] = useState(false)
   const toast = useUI(s => s.toast)
@@ -54,6 +61,7 @@ function Conversation() {
 
   const load = () => api('/api/chat?after=' + lastId(msgsRef.current)).then(r => {
     setLastReadCoach(r.lastReadCoach)
+    setDiscovery(r.discovery || null)
     const merged = mergeMessages(msgsRef.current, r.messages)
     setMsgs(merged)
     // Everything on screen counts as read; keep the tab badge honest right away.
@@ -74,13 +82,25 @@ function Conversation() {
     setSending(true)
     api('/api/chat', { method: 'POST', body: JSON.stringify({ text: body }) })
       .then(({ message }) => { setText(''); setMsgs(m => mergeMessages(m, [message])) })
-      .catch(e => toast(e.message))          // failed send: the text stays in the field
+      .catch(e => {
+        // Quota just ran out server-side — reflect it locally without waiting for a re-fetch.
+        if (e.status === 403) setDiscovery(d => d && { ...d, used: d.max })
+        toast(e.message)
+      })
       .finally(() => setSending(false))
   }
 
+  // Non-coached account with nothing to show yet (no messages, quota untouched) — the
+  // regular upsell screen, same as before onboarding existed.
+  if (!coached && msgs.length === 0 && discovery && discovery.used === 0) return <Upsell />
+
+  const quotaExhausted = discovery && discovery.used >= discovery.max
   const lastMine = [...msgs].reverse().find(m => m.from === 'client')
   return <div className="narrow chatview">
     <div className="hdr"><h1>{t('Coach')}</h1></div>
+    {discovery && discovery.used < discovery.max && <div className="card small" style={{ padding: '10px 14px', marginBottom: 10 }}>
+      {t('Discovery: {0} messages left with your coach', discovery.max - discovery.used)}
+    </div>}
     <div className="chatlog">
       {!msgs.length && <div className="empty small">{t('Say hi — your coach reads everything.')}</div>}
       {msgs.map(m => <div key={m.id} className={'bubble' + (m.from === 'client' ? ' mine' : '')}>
@@ -89,14 +109,14 @@ function Conversation() {
       </div>)}
       <div ref={endRef} />
     </div>
-    <div className="chatinput">
+    {quotaExhausted ? <UpsellCard /> : <div className="chatinput">
       <textarea rows={1} maxLength={2000} value={text} placeholder={t('Write a message…')}
         onChange={e => setText(e.target.value)}
         onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }} />
       <button className="sendbtn" disabled={!text.trim() || sending} onClick={send} aria-label={t('Send')}>
         <Icon name="arrowUp" />
       </button>
-    </div>
+    </div>}
   </div>
 }
 
@@ -104,6 +124,5 @@ export default function Chat() {
   const user = useStore(s => s.user)
   const isGuest = useStore(s => s.isGuest())
   if (!user && isGuest) return <AccountGate />
-  if (!user?.coached) return <Upsell />
-  return <Conversation />
+  return <Conversation coached={!!user?.coached} />
 }

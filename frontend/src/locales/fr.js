@@ -590,6 +590,7 @@ export default {
   'Unlimited messages, answers within the day': 'Messages illimités, réponse dans la journée',
   'Get coaching': 'Démarrer le coaching',
   'Say hi — your coach reads everything.': 'Dis bonjour — ton coach lit tout.',
+  'Discovery: {0} messages left with your coach': 'Découverte : {0} messages restants avec ton coach',
   'Write a message…': 'Écris ton message…',
   'Send': 'Envoyer',
   'Seen': 'Vu'
