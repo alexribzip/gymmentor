@@ -95,6 +95,16 @@ describe('focus', () => {
     expect(dos.routines.some(r => r.ex.some(e => ZONES[e.id] === 'pull' && e.sets >= 4))).toBe(true)
   })
 
+  it('focus dos + pdc always ends with a boosted pull exercise, never a glutes swap', () => {
+    const p = buildProgram({ objectif: 'muscle', niveau: 'inter', jours: 3, materiel: 'pdc', focus: 'dos' })
+    for (const r of p.routines) {
+      const pulls = r.ex.filter(e => ZONES[e.id] === 'pull')
+      expect(pulls.length).toBeGreaterThan(0)
+      for (const e of pulls) expect(e.sets).toBeGreaterThanOrEqual(4)
+      expect(r.ex.some(e => e.id === '3433')).toBe(false)
+    }
+  })
+
   it('all 48 combinations still produce valid programs', () => {
     for (const objectif of ['muscle', 'force', 'forme']) for (const niveau of ['debutant', 'inter'])
       for (const jours of [2, 3, 4]) for (const materiel of ['salle', 'maison', 'pdc'])

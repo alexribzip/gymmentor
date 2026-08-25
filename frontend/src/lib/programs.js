@@ -62,9 +62,10 @@ function skeleton(jours, materiel) {
 // and the swap pools. bas = lower body · push/pull = upper · tronc = core
 // (never boosted, never sacrificed). Ids outside this map count as tronc.
 // Verified against EXDB (lib/exercises-data.js) id → n/bp/tg/eq — see
-// task-1-report.md for the full verification table. One correction vs the
-// draft: 3433 "swimmer kicks v.2 (male)" is bp:upper legs/tg:glutes in EXDB,
-// so it belongs to 'bas', not 'tronc'.
+// task-1-report.md for the full verification table. 3433 "swimmer kicks v.2
+// (male)" was removed from SWAP_POOLS.dos.pdc (it's bp:upper legs/tg:glutes,
+// i.e. 'bas' not 'pull' — swapping it in for a sacrificed push inverted the
+// dos focus) and dropped from this map since nothing references it anymore.
 export const ZONES = {
   // templates + starter
   '0043': 'bas', '1459': 'bas', '1760': 'bas', '0336': 'bas', '3013': 'bas',
@@ -77,7 +78,7 @@ export const ZONES = {
   // pools
   '1409': 'bas', '0431': 'bas', '0410': 'bas', '3645': 'bas', '3769': 'bas',
   '0437': 'pull', '0348': 'pull', '0259': 'push',
-  '0180': 'pull', '0044': 'bas', '3433': 'bas'
+  '0180': 'pull', '0044': 'bas'
 }
 
 export const FOCUS_ZONES = { bas: ['bas'], haut: ['push', 'pull'], dos: ['pull'] }
@@ -86,7 +87,7 @@ const SACRIFICE = { bas: 'push', haut: 'bas', dos: 'push' }
 export const SWAP_POOLS = {
   bas: { salle: ['1409', '0431'], maison: ['0431', '0410'], pdc: ['3645', '3769'] },
   haut: { salle: ['0437', '0348'], maison: ['0437', '0348'], pdc: ['0259', '0129'] },
-  dos: { salle: ['0180', '0044'], maison: ['0348', '0293'], pdc: ['3433', '2300'] }
+  dos: { salle: ['0180', '0044'], maison: ['0348', '0293'], pdc: ['2300'] }
 }
 
 const zone = id => ZONES[id] || 'tronc'
