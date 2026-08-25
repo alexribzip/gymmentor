@@ -45,6 +45,10 @@
     # Éditer .env : RP_ID=gymmentor.app  ORIGIN=https://gymmentor.app
     #               RP_NAME=GymMentor  WEB_PORT=8080
     #  + GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET pour « Continuer avec Google » (client OAuth Web, redirect https://gymmentor.app/api/auth/google/callback)
+    #  + STRIPE_SECRET_KEY / STRIPE_PRICE_ID / STRIPE_WEBHOOK_SECRET pour l'abonnement
+    #    (dashboard Stripe : produit 14,90 €/mois → price_… ; webhook endpoint
+    #    https://gymmentor.app/api/stripe/webhook, events checkout.session.completed
+    #    + customer.subscription.deleted → whsec_…). Absents = bouton contact mailto.
     docker compose up -d --build        # build depuis le fork, PAS docker compose pull
 
 ## Premier compte = coach
@@ -70,6 +74,11 @@
 - [ ] « Vu » s'affiche sous le dernier message de chacun après lecture en face.
 - [ ] Désactiver le coaching du compte test → son onglet réaffiche l'upsell.
 - [ ] « Continuer avec Google » → compte créé, wizard, email visible dans la vue Coach (panneau Données).
+- [ ] « S'abonner · 14,90 €/mois » (compte non coaché, quota épuisé ou upsell) → Checkout
+      Stripe (carte test 4242…) → retour app, toast « Paiement confirmé », coached
+      s'active seul en quelques secondes (+ push « 💶 » côté coach). Réglages →
+      « Gérer mon abonnement » → portail Stripe → résilier → coached repasse off
+      (+ push « ⚠️ résilié »).
 
 ## Rappels
 - **Backup automatique en place (25/08)** : cron quotidien 03h20 UTC sur la VM
